@@ -33,6 +33,11 @@ class Product extends Model
         return $this->belongsTo(Inventory::class, "inventory_id");
     }
 
+    public function discounts()
+    {
+        return $this->hasMany(Discount::class, "product_id");
+    }
+
     public function product_images(){
         return $this->hasMany(ProductImage::class, "product_id");
     }
@@ -41,6 +46,10 @@ class Product extends Model
         parent::boot();
 
         static::creating(function ($product){
+            $product->slug = Str::slug($product->name);
+        });
+
+        static::updating(function ($product) {
             $product->slug = Str::slug($product->name);
         });
     }

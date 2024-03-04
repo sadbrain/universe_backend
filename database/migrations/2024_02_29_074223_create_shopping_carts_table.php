@@ -20,7 +20,6 @@ class CreateShoppingCartsTable extends Migration
             $table->unsignedInteger('quantity')->default(1);
             $table->unsignedTinyInteger('product_id')->default(null);
             $table->unsignedTinyInteger('user_id')->default(null);
-            $table->softDeletes();
             $table->timestamps();
             $table->foreign('product_id')
                     ->references('id')

@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class ShoppingCart extends Model
 {
     use HasFactory;
-    use SoftDeletes;
     protected $fillable = [
         'color',
         'size',
@@ -26,5 +25,4 @@ class ShoppingCart extends Model
     {
         return $this->belongsTo(Product::class, "product_id");
     }
-    protected $date = ["deleted_at"];
 }

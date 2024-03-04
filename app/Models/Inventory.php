@@ -15,5 +15,13 @@ class Inventory extends Model
         'color',
         'size'
     ];
+    public function sizes()
+    {
+        return $this->hasMany(ProductSize::class, "inventory_id");
+    }
+
+    public function colors(){
+        return $this->hasMany(ProductColor::class, "inventory_id");
+    }
     protected $date = ["deleted_at"];
 }
