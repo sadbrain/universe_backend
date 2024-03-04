@@ -17,8 +17,6 @@ class CreateInventoriesTable extends Migration
             $table->tinyIncrements('id');
             $table->unsignedInteger('quantity')->default(0);
             $table->unsignedInteger('quantity_sold')->default(0);
-            $table->string('color', 50)->nullable();
-            $table->string('size', 50)->nullable();
             $table->softDeletes();
             $table->timestamps();
 

@@ -22,6 +22,10 @@ class Category extends Model
         static::creating(function ($category){
             $category->slug = Str::slug($category->name);
         });
+
+        static::updating(function ($category){
+            $category->slug = Str::slug($category->name);
+        });
     }
     protected $date = ["deleted_at"];
 }

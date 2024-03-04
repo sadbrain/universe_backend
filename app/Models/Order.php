@@ -34,7 +34,7 @@ class Order extends Model
         return $this->belongsTo(Payment::class, "order_id");
     }
 
-    public function order_detail()
+    public function order_details()
     {
         return $this->hasMany(OrderDetail::class, "order_id");
     }
