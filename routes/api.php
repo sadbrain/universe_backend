@@ -2,7 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\CategoryController;
 /*
 
 |--------------------------------------------------------------------------
@@ -18,10 +18,8 @@ use App\Http\Controllers\Admin\CategoryController;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-Route::prefix('admin')->group(function () {
-    Route::get('/categories', [CategoryController::class, 'getAll']);
-    Route::get('/categories/{id}', [CategoryController::class, 'get']);
-    Route::delete('/categories/{id}', [CategoryController::class, 'delete']);
-    Route::put('/categories/{id}', [CategoryController::class, 'update']);
-    Route::post('/categories', [CategoryController::class, 'create']);
-});
+Route::get('/v1/categories', [CategoryController::class, 'getAll']);
+Route::get('/v1/categories/{id}', [CategoryController::class, 'get']);
+Route::delete('/v1/categories/{id}', [CategoryController::class, 'delete']);
+Route::put('/v1/categories/{id}', [CategoryController::class, 'update']);
+Route::post('/v1/categories', [CategoryController::class, 'create']);

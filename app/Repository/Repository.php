@@ -27,13 +27,13 @@ abstract class Repository implements IRepository{
             $this->get_model()
         );
     }
-    public function get_all(?string $filter = null): array{
+    public function get_all(?string $filter = null){
         $query = $this->_model::query();
         if (!is_null($filter)) {
             $query->whereRaw($filter);
         }
-
-        return $query->get()->all();
+        
+        return $query;
     }
 
     public function get(string $filter){
@@ -44,38 +44,15 @@ abstract class Repository implements IRepository{
     }
 
     public function add($entity){
-        if ($entity instanceof Model) {
-            $entity = $entity->toArray();
-        }
-
-        return $this -> _model::create($entity);
+        return $this -> _model::create($entity->toArray());
     }
 
     public function update($entity){
-        if ($entity instanceof Model) {
-            $entity = $entity->toArray();
-        } 
-        $id = $entity["id"] ?? null;
-
-        if(!is_null($id)){
-            $entityInDb = $this->_model::where("id", $id)->first();
-            if($entityInDb !== null) {
-                $entityInDb -> update($entity);
-                
-                return $entityInDb;
-            }
-        }
+        $entity -> update($entity->toArray());
+        return $entity;
     }
 
     public function delete($entity){
-        if ($entity instanceof Model) {
-            $entity = $entity->toArray();
-        } 
-        $id = $entity["id"] ?? null;
-
-        if(!is_null($id)){
-            $entityInDb = $this->_model::where("id", $id)->first();
-            $entityInDb->delete();
-        }
+        $entity->delete();
     }
 }

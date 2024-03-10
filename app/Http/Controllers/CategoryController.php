@@ -1,16 +1,24 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\ApiController;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Exception;
 
-class CategoryController extends AdminController
+class CategoryController extends ApiController
 {  
    
     public function getAll(){
+        //phản hồi sẽ trả về 
+        //200 là thành công
+        $response = [
+            'status_code' => 200,
+            'data' => [],
+            'error_messages' => '',
+            'success_messages' => '',
+        ];
         // di tu Model can lam viec goi ra query de co the su dung
         // cac cau lenh query trong database tren model 
 
@@ -22,17 +30,29 @@ class CategoryController extends AdminController
         //muon lay tat ca thi ta phai dung ham get(Execute the query as a "select" statement.)
         //all() no se Get all of the items in the collection roi chuyen sang array
         $categories = $query->get()->all();
-        // $categories = $this->_unitOfWork->category()->get_all();
-        return response()->json(["data" => $categories]);
+        $response["data"] = $categories;
+        // $categories = $this->_unitOfWork->category()->get_all()->get()->all();
+        return response()->json($response);
 
     }
 
     public function get(?int $id)
     {
+        //phản hồi sẽ trả về 
+        //200 là thành công
+        $response = [
+            'status_code' => 200,
+            'data' => [],
+            'error_messages' => '',
+            'success_messages' => '',
+        ];
         //lay theo id
         //validate id khong duoc null voi bang 0
-        if ($id == null || $id == 0) {
-            return response()->json(["error" => "Id is not found"]);
+        if ($id == null || $id <= 0) {
+            //tình trạng trả về và message error for this case
+            $response["error_messages"] = 'Invalid id';
+            $response["status_code"] = '400';
+            return response()->json($response);
         }
     
         //id da hop le roi tiep den tim category theo id
@@ -51,38 +71,69 @@ class CategoryController extends AdminController
         $category = $query->whereRaw("id = $id")->first();
         //validate category co ton tai hay khong
         if ($category == null) {
-            return response()->json(["error" => "Category not found"]);
+            //tình trạng trả về và message error for this case
+            $response["error_messages"] = 'Category not found';
+            $response["status_code"] = '404';
+            return response()->json($response);
         }
-    
-        return response()->json(["data" => $category]);
+
+        $response["data"] = $category;
+        return response()->json($response);
 
     }
 
     public function create(Request $request){
-        //lay du lieu muon tao tu request nhu ben duoi
-        $data = $request->all();
+        //tạo thành công sẽ là 201
+        $response = [
+            'status_code' => 201,
+            'data' => [],
+            'error_messages' => '',
+            'success_messages' => '',
+        ];
+        //lay du lieu muon tao tu request nhu ben duoi và validate
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
 
         try {
 
             // $this->_unitOfWork->category()->add($data);
             //tao category
             Category::create($data);
-            return response()->json(['success' => true, 'message' => 'Category created']);
+            $response["success_messages"] = 'Category created';
+            return response()->json($response);
         } catch (Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Exception: ' . $e->getMessage()]);
+            $response["error_messages"] = 'Exception: ' . $e->getMessage();
+            $response["status_code"] = 500;
+            return response()->json($response);
         }
     }
     
     public function update(Request $request,int $id){
+        $response = [
+            'status_code' => 200,
+            'data' => [],
+            'error_messages' => '',
+            'success_messages' => '',
+        ];
         //lay du lieu muon tao tu request nhu ben duoi
-        $data = $request->all();
+        $data = $request->validate([
+            'id' => 'required|numeric',
+            'name' => 'required|string|max:255',
+        ]);
+        
+        //lay du lieu muon tao tu request nhu ben duoi
         if($id != $data["id"]){
-            return response()->json(["error" => "bad request id"]);
+            $response["error_messages"] = 'Bad request id';
+            $response["status_code"] = '400';
+            return response()->json($response);
         }
         //lay theo id
         //validate id khong duoc null voi bang 0
         if ($id == null || $id == 0) {
-            return response()->json(["error" => "Id is not found"]);
+            $response["error_messages"] = 'Bad request id';
+            $response["status_code"] = '400';
+            return response()->json($response);
         }
             //id da hop le roi tiep den tim category theo id
          // di tu Model can lam viec goi ra query de co the su dung
@@ -101,7 +152,9 @@ class CategoryController extends AdminController
         // $category = $this->_unitOfWork->category()->get("id = $id");
      //validate category co ton tai hay khong
         if ($category == null) {
-            return response()->json(["error" => "Category not found"]);
+            $response["error_messages"] = 'Category not found';
+            $response["status_code"] = '404';
+            return response()->json($response);
         }
     
 
@@ -109,17 +162,28 @@ class CategoryController extends AdminController
             // $this->_unitOfWork->category()->update($data);
             //update category 
             $category->update($data);
-            return response()->json(['success' => true, 'message' => 'Category updated']);
+            $response["success_messages"] = 'Category updated';
+            return response()->json($response);
         } catch (Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Exception: ' . $e->getMessage()]);
+            $response["error_messages"] = 'Exception: ' . $e->getMessage();
+            $response["status_code"] = 500;
+            return response()->json($response);
         }
     }
 
     public function delete(?int $id){
         //lay theo id
         //validate id khong duoc null voi bang 0
+        $response = [
+            'status_code' => 204,
+            'data' => [],
+            'error_messages' => '',
+            'success_messages' => '',
+        ];
         if ($id == null || $id == 0) {
-            return response()->json(["error" => "Id is not found"]);
+            $response["error_messages"] = 'Bad request id';
+            $response["status_code"] = '400';
+            return response()->json($response);
         }
     
     
@@ -140,16 +204,21 @@ class CategoryController extends AdminController
         $category = $query->whereRaw("id = $id")->first();
                 //validate category co ton tai hay khong
         if ($category == null) {
-            return response()->json(["error" => "Category not found"]);
+            $response["error_messages"] = 'Category not found';
+            $response["status_code"] = '404';
+            return response()->json($response);
         }
     
         try {
             //xoa category
             // $this->_unitOfWork->category()->delete($category);
             $category->delete();
-            return response()->json(['success' => true, 'message' => 'Category deleted']);
+            $response["success_messages"] = 'Category deleted';
+            return response()->json($response);
         } catch (Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Exception: ' . $e->getMessage()]);
+            $response["error_messages"] = 'Exception: ' . $e->getMessage();
+            $response["status_code"] = 500;
+            return response()->json($response);
         }
     }
 }
