@@ -16,7 +16,7 @@ class CreateOrdersTable extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->tinyIncrements('id');
             $table->string('name', 100);
-            $table->string('phone_number', 20);
+            $table->string('phone', 20);
             $table->string('street_address', 100);
             $table->string('district_address', 100);
             $table->string('city', 100);

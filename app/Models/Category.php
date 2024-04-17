@@ -15,6 +15,10 @@ class Category extends Model
         'name',
         'slug'
     ];
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
     protected static function boot()
     {
         parent::boot();

@@ -6,19 +6,20 @@ use App\Http\Controllers\ApiController;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Exception;
+use Validator;
 
 class CategoryController extends ApiController
 {  
-   
-    public function getAll(){
+
+    public function getAll(Request $request){
         //phản hồi sẽ trả về 
         //200 là thành công
         $response = [
-            'status_code' => 200,
             'data' => [],
             'error_messages' => '',
             'success_messages' => '',
         ];
+
         // di tu Model can lam viec goi ra query de co the su dung
         // cac cau lenh query trong database tren model 
 
@@ -32,27 +33,30 @@ class CategoryController extends ApiController
         $categories = $query->get()->all();
         $response["data"] = $categories;
         // $categories = $this->_unitOfWork->category()->get_all()->get()->all();
-        return response()->json($response);
+        return response()->json($response, 200);
 
     }
 
-    public function get(?int $id)
+    public function get(Request $request,int $id)
     {
         //phản hồi sẽ trả về 
         //200 là thành công
         $response = [
-            'status_code' => 200,
             'data' => [],
             'error_messages' => '',
             'success_messages' => '',
         ];
+        $user = $this->getUser($request);
+        if(!$this->isAdmin($user)){
+            $response["error_messages"] = "You do not have permission to access this page.";
+            return response()->json($response, 403);
+        }
         //lay theo id
         //validate id khong duoc null voi bang 0
         if ($id == null || $id <= 0) {
             //tình trạng trả về và message error for this case
             $response["error_messages"] = 'Invalid id';
-            $response["status_code"] = '400';
-            return response()->json($response);
+            return response()->json($response, 400);
         }
     
         //id da hop le roi tiep den tim category theo id
@@ -73,67 +77,76 @@ class CategoryController extends ApiController
         if ($category == null) {
             //tình trạng trả về và message error for this case
             $response["error_messages"] = 'Category not found';
-            $response["status_code"] = '404';
-            return response()->json($response);
+            return response()->json($response, 404);
         }
 
         $response["data"] = $category;
-        return response()->json($response);
+        return response()->json($response, 200);
 
     }
 
     public function create(Request $request){
         //tạo thành công sẽ là 201
         $response = [
-            'status_code' => 201,
             'data' => [],
             'error_messages' => '',
             'success_messages' => '',
         ];
-        //lay du lieu muon tao tu request nhu ben duoi và validate
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
+        $user = $this->getUser($request);
+        if(!$this->isAdmin($user)){
+            $response["error_messages"] = "You do not have permission to access this page.";
+            return response()->json($response, 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|min:2|max:255',
         ]);
+        if($validator->fails()){
+            return response()->json($validator->errors(), 400);
+        }
 
         try {
 
             // $this->_unitOfWork->category()->add($data);
             //tao category
-            Category::create($data);
-            $response["success_messages"] = 'Category created';
-            return response()->json($response);
+            Category::create($validator->validated());
+            $response["success_messages"] = 'Category is created successfully';
+            return response()->json($response, 201);
         } catch (Exception $e) {
             $response["error_messages"] = 'Exception: ' . $e->getMessage();
-            $response["status_code"] = 500;
-            return response()->json($response);
+            return response()->json($response, 500);
         }
     }
     
     public function update(Request $request,int $id){
         $response = [
-            'status_code' => 200,
             'data' => [],
             'error_messages' => '',
             'success_messages' => '',
         ];
-        //lay du lieu muon tao tu request nhu ben duoi
-        $data = $request->validate([
-            'id' => 'required|numeric',
-            'name' => 'required|string|max:255',
+        $user = $this->getUser($request);
+        if(!$this->isAdmin($user)){
+            $response["error_messages"] = "You do not have permission to access this page.";
+            return response()->json($response, 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|min:2|max:255',
         ]);
+        if($validator->fails()){
+            return response()->json($validator->errors(), 400);
+        }
         
         //lay du lieu muon tao tu request nhu ben duoi
-        if($id != $data["id"]){
+        if($id != $request->input("id")){
             $response["error_messages"] = 'Bad request id';
-            $response["status_code"] = '400';
-            return response()->json($response);
+            return response()->json($response, 400);
         }
         //lay theo id
         //validate id khong duoc null voi bang 0
         if ($id == null || $id == 0) {
             $response["error_messages"] = 'Bad request id';
-            $response["status_code"] = '400';
-            return response()->json($response);
+            return response()->json($response, 400);
         }
             //id da hop le roi tiep den tim category theo id
          // di tu Model can lam viec goi ra query de co the su dung
@@ -152,38 +165,39 @@ class CategoryController extends ApiController
         // $category = $this->_unitOfWork->category()->get("id = $id");
      //validate category co ton tai hay khong
         if ($category == null) {
-            $response["error_messages"] = 'Category not found';
-            $response["status_code"] = '404';
-            return response()->json($response);
+            $response["error_messages"] = 'Category is not found';
+            return response()->json($response, 404);
         }
     
 
         try {
             // $this->_unitOfWork->category()->update($data);
             //update category 
-            $category->update($data);
-            $response["success_messages"] = 'Category updated';
-            return response()->json($response);
+            $category->update($validator->validated());
+            $response["success_messages"] = 'Category is updated successfully';
+            return response()->json($response, 200);
         } catch (Exception $e) {
             $response["error_messages"] = 'Exception: ' . $e->getMessage();
-            $response["status_code"] = 500;
-            return response()->json($response);
+            return response()->json($response, 500);
         }
     }
 
-    public function delete(?int $id){
+    public function delete(Request $request, ?int $id){
         //lay theo id
         //validate id khong duoc null voi bang 0
         $response = [
-            'status_code' => 204,
             'data' => [],
             'error_messages' => '',
             'success_messages' => '',
         ];
+        $user = $this->getUser($request);
+        if(!$this->isAdmin($user)){
+            $response["error_messages"] = "You do not have permission to access this page.";
+            return response()->json($response, 403);
+        }
         if ($id == null || $id == 0) {
             $response["error_messages"] = 'Bad request id';
-            $response["status_code"] = '400';
-            return response()->json($response);
+            return response()->json($response, 400);
         }
     
     
@@ -205,20 +219,17 @@ class CategoryController extends ApiController
                 //validate category co ton tai hay khong
         if ($category == null) {
             $response["error_messages"] = 'Category not found';
-            $response["status_code"] = '404';
-            return response()->json($response);
+            return response()->json($response, 404);
         }
-    
         try {
             //xoa category
             // $this->_unitOfWork->category()->delete($category);
             $category->delete();
             $response["success_messages"] = 'Category deleted';
-            return response()->json($response);
+            return response()->json($response, 204);
         } catch (Exception $e) {
             $response["error_messages"] = 'Exception: ' . $e->getMessage();
-            $response["status_code"] = 500;
-            return response()->json($response);
+            return response()->json($response, 500);
         }
     }
 }

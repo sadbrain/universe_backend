@@ -32,7 +32,7 @@ abstract class Repository implements IRepository{
         if (!is_null($filter)) {
             $query->whereRaw($filter);
         }
-        
+
         return $query;
     }
 
@@ -44,15 +44,37 @@ abstract class Repository implements IRepository{
     }
 
     public function add($entity){
-        return $this -> _model::create($entity->toArray());
+        if ($entity instanceof Model) {
+            $entity = $entity->toArray();
+        }
+        return $this -> _model::create($entity);
     }
 
     public function update($entity){
-        $entity -> update($entity->toArray());
-        return $entity;
+        if ($entity instanceof Model) {
+            $entity = $entity->toArray();
+        } 
+        $id = $entity["id"] ?? null;
+
+        if(!is_null($id)){
+            $entityInDb = $this->_model::where("id", $id)->first();
+            if($entityInDb !== null) {
+                $entityInDb -> update($entity);
+                
+                return $entityInDb;
+            }
+        }
     }
 
     public function delete($entity){
-        $entity->delete();
+        if ($entity instanceof Model) {
+            $entity = $entity->toArray();
+        } 
+        $id = $entity["id"] ?? null;
+
+        if(!is_null($id)){
+            $entityInDb = $this->_model::where("id", $id)->first();
+            $entityInDb->delete();
+        }
     }
 }

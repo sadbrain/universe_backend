@@ -12,8 +12,7 @@ class Inventory extends Model
     use SoftDeletes;
     protected $fillable = [
         'quantity',
-        'color',
-        'size'
+        'quantity_sold',
     ];
     public function sizes()
     {
