@@ -10,5 +10,8 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends ApiController
 {  
-    
+    public function logout() {
+        auth()->logout();
+        return response()->json(['success_messages' => 'User successfully signed out']);
+    }
 }
