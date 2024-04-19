@@ -70,4 +70,9 @@ class AuthController extends ApiController
             'user' => auth()->user()
             
         ]);
+
+    public function logout() {
+        auth()->logout();
+        return response()->json(['success_messages' => 'User successfully signed out']);
+    }
 }
