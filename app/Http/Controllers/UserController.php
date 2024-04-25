@@ -9,5 +9,5 @@ use Illuminate\Support\Facades\Hash;
 use Exception;
 class UserController extends ApiController
 {
-   
+    
 }
