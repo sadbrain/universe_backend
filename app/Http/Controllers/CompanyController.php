@@ -8,6 +8,5 @@ use Validator;
 class CompanyController extends ApiController
 {
     
-
     
 }
