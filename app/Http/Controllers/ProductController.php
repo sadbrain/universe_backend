@@ -14,6 +14,29 @@ use Illuminate\Support\Facades\File;
 use Exception;
 class ProductController extends ApiController
 {
+    public function getProductsByCategory(?int $id = null, int $page = 1){
+        $response = [
+            'data' => [],
+            'error_messages' => '',
+            'success_messages' => '',
+        ];
+        
+        if ($id == null || !is_numeric($id)) {
+            $firstCategory = $this->_unitOfWork->category()->get_all()->first();
+            $id = $firstCategory->id;   
+        }   
+        $perPage = 10;
+        $products = $this->_unitOfWork->product()->get_all("category_id = $id")
+            ->paginate($perPage, ["*"], "page", $page)->items();
+        foreach ($products as $product){
+            $product->inventory;
+            $product->discount;
+            $product->category;     
+            $response["data"][] = $product;
+        }
+
+        return response()->json($response, 200);
+    }
     
     public function getAll(Request $request){
         $response = [
