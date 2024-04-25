@@ -418,4 +418,18 @@ class ProductController extends ApiController
             return response()->json($response, 500);
         }
     }
+
+    public function getBestSellProducts(){
+        $response = [
+            'data' => [],
+            'error_messages' => '',
+            'success_messages' => '',
+        ];
+
+        $top_selling_products = $this->_unitOfWork->order_detail()->get_best_seller_products();
+        $response["data"] = $top_selling_products;
+
+        return response()->json($response, 200);
+
+    }
 }
