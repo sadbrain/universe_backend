@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Validator;
-use Exception;
 use App\Models\Company;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class CompanyController extends Controller
 {
@@ -17,17 +16,19 @@ class CompanyController extends Controller
             'success_messages' => '',
         ];
 
-        try {
-            $companies = Company::all();
-            $response['data'] = $companies;
-            return response()->json($response, 200);
-        } catch (Exception $e) {
-            $response['error_messages'] = 'Exception: ' . $e->getMessage();
-            return response()->json($response, 500);
+        $user = $this->getUser($request);
+        if (!$this->isAdmin($user)) {
+            $response["error_messages"] = "You do not have permission to access this page.";
+            return response()->json($response, 403);
         }
+
+        $companies = Company::all();
+
+        $response["data"] = $companies;
+        return response()->json($response, 200);
     }
 
-    public function get(Request $request, int $id)
+    public function get(Request $request, $id)
     {
         $response = [
             'data' => [],
@@ -35,19 +36,21 @@ class CompanyController extends Controller
             'success_messages' => '',
         ];
 
-        try {
-            $company = Company::find($id);
-            if (!$company) {
-                $response['error_messages'] = 'Company not found';
-                return response()->json($response, 404);
-            }
-
-            $response['data'] = $company;
-            return response()->json($response, 200);
-        } catch (Exception $e) {
-            $response['error_messages'] = 'Exception: ' . $e->getMessage();
-            return response()->json($response, 500);
+        $user = $this->getUser($request);
+        if (!$this->isAdmin($user)) {
+            $response["error_messages"] = "You do not have permission to access this page.";
+            return response()->json($response, 403);
         }
+
+        $company = Company::find($id);
+
+        if (!$company) {
+            $response["error_messages"] = 'Company not found';
+            return response()->json($response, 404);
+        }
+
+        $response["data"] = $company;
+        return response()->json($response, 200);
     }
 
     public function create(Request $request)
@@ -58,6 +61,12 @@ class CompanyController extends Controller
             'success_messages' => '',
         ];
 
+        $user = $this->getUser($request);
+        if (!$this->isAdmin($user)) {
+            $response["error_messages"] = "You do not have permission to access this page.";
+            return response()->json($response, 403);
+        }
+
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|min:6|max:255',
             'phone_number' => 'required|string|min:10|max:20',
@@ -71,22 +80,28 @@ class CompanyController extends Controller
         }
 
         try {
-            $company = Company::create($request->all());
-            $response['success_messages'] = 'Company created successfully';
+            $company = Company::create($validator->validated());
+            $response["success_messages"] = 'Company is created successfully';
             return response()->json($response, 201);
-        } catch (Exception $e) {
-            $response['error_messages'] = 'Exception: ' . $e->getMessage();
+        } catch (\Exception $e) {
+            $response["error_messages"] = 'Exception: ' . $e->getMessage();
             return response()->json($response, 500);
         }
     }
 
-    public function update(Request $request, int $id)
+    public function update(Request $request, $id)
     {
         $response = [
             'data' => [],
             'error_messages' => '',
             'success_messages' => '',
         ];
+
+        $user = $this->getUser($request);
+        if (!$this->isAdmin($user)) {
+            $response["error_messages"] = "You do not have permission to access this page.";
+            return response()->json($response, 403);
+        }
 
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|min:6|max:255',
@@ -100,23 +115,24 @@ class CompanyController extends Controller
             return response()->json($validator->errors(), 400);
         }
 
-        try {
-            $company = Company::find($id);
-            if (!$company) {
-                $response['error_messages'] = 'Company not found';
-                return response()->json($response, 404);
-            }
+        $company = Company::find($id);
 
-            $company->update($request->all());
-            $response['success_messages'] = 'Company updated successfully';
+        if (!$company) {
+            $response["error_messages"] = 'Company not found';
+            return response()->json($response, 404);
+        }
+
+        try {
+            $company->update($validator->validated());
+            $response["success_messages"] = 'Company is updated successfully';
             return response()->json($response, 200);
-        } catch (Exception $e) {
-            $response['error_messages'] = 'Exception: ' . $e->getMessage();
+        } catch (\Exception $e) {
+            $response["error_messages"] = 'Exception: ' . $e->getMessage();
             return response()->json($response, 500);
         }
     }
 
-    public function delete(Request $request, ?int $id = null)
+    public function delete(Request $request, $id)
     {
         $response = [
             'data' => [],
@@ -124,25 +140,27 @@ class CompanyController extends Controller
             'success_messages' => '',
         ];
 
-        if ($id == null || $id == 0) {
-            $response['error_messages'] = 'Bad request id';
-            return response()->json($response, 400);
+        $user = $this->getUser($request);
+        if (!$this->isAdmin($user)) {
+            $response["error_messages"] = "You do not have permission to access this page.";
+            return response()->json($response, 403);
+        }
+
+        $company = Company::find($id);
+
+        if (!$company) {
+            $response["error_messages"] = 'Company not found';
+            return response()->json($response, 404);
         }
 
         try {
-            $company = Company::find($id);
-            if (!$company) {
-                $response['error_messages'] = 'Company not found';
-                return response()->json($response, 404);
-            }
-
             $company->users()->update(['company_id' => null]);
-            $company->delete();
 
-            $response['success_messages'] = 'Company deleted successfully';
+            $company->delete();
+            $response["success_messages"] = 'Company deleted';
             return response()->json($response, 204);
-        } catch (Exception $e) {
-            $response['error_messages'] = 'Exception: ' . $e->getMessage();
+        } catch (\Exception $e) {
+            $response["error_messages"] = 'Exception: ' . $e->getMessage();
             return response()->json($response, 500);
         }
     }
