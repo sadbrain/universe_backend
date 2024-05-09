@@ -1,4 +1,4 @@
-<?php
+        <?php
 
 namespace App\Http\Controllers;
 
@@ -14,7 +14,31 @@ use Illuminate\Support\Facades\File;
 use Exception;
 class ProductController extends ApiController
 {
-    
+
+    public function getProductsByCategory(?int $id = null, int $page = 1){
+        $response = [
+            'data' => [],
+            'error_messages' => '',
+            'success_messages' => '',
+        ];
+        
+        if ($id == null || !is_numeric($id)) {
+            $firstCategory = $this->_unitOfWork->category()->get_all()->first();
+            $id = $firstCategory->id;   
+        }   
+        $perPage = 10;
+        $products = $this->_unitOfWork->product()->get_all("category_id = $id")
+            ->paginate($perPage, ["*"], "page", $page)->items();
+        foreach ($products as $product){
+            $product->inventory;
+            $product->discount;
+            $product->category;     
+            $response["data"][] = $product;
+        }
+
+        return response()->json($response, 200);
+    }
+   
     public function getAll(Request $request){
         $response = [
             'data' => [],
@@ -27,6 +51,7 @@ class ProductController extends ApiController
             return response()->json($response, 403);
         }
 
+
         $products = $this->_unitOfWork->product()->get_all()->get()->all();
         foreach ($products as $product){
             $product->inventory;
@@ -34,7 +59,6 @@ class ProductController extends ApiController
             $product->category;     
             $response["data"][] = $product;
         }
-
         return response()->json($response, 200);
     }
 
@@ -70,6 +94,8 @@ class ProductController extends ApiController
             return response()->json($validator->errors(), 400);
         }
 
+
+
         try {
             $product = $this->_unitOfWork->product()->add($request->input("product"));
             $inventory = $this->_unitOfWork->inventory()->add($request->input("inventory"));
@@ -77,6 +103,7 @@ class ProductController extends ApiController
             $product->inventory_id = $inventory->id;
             $product->discount_id = $discount->id;
             $this->_unitOfWork->product()->update($product);
+    
     
             $sizes = $request->input("sizes");
             $colors = $request->input("colors");
@@ -181,7 +208,6 @@ class ProductController extends ApiController
             
             $sizes = $request->input("sizes");
             $colors = $request->input("colors");
-
             foreach($sizes as $size){
                 $product_size = $this->_unitOfWork->product_size()->get("id =". $size["id"]);
                 $product_size->fill($size);
@@ -229,7 +255,7 @@ class ProductController extends ApiController
 
     public function delete(Request $request, ?int $id = null){
         //lay theo id
-        
+        //validate id khong duoc null voi bang 0
         $response = [
             'data' => [],
             'error_messages' => '',
@@ -252,7 +278,6 @@ class ProductController extends ApiController
            
             return response()->json($response, 404);
         }
-
         try {
             $this->_unitOfWork->product()->delete($product);
             $foldername = "/images/product/product-".$product->id;
@@ -297,6 +322,7 @@ class ProductController extends ApiController
 
         
         try {
+    
             $sizes = $request->input("sizes");
             foreach($sizes as $size){
                 $product_size = new \App\Models\ProductSize();
@@ -336,6 +362,7 @@ class ProductController extends ApiController
             return response()->json($validator->errors(), 400);
         }
 
+        
         try {
             $colors = $request->input("colors");
             foreach($colors as $color){
@@ -343,6 +370,7 @@ class ProductController extends ApiController
                 $product_color->fill($color);
                 $product_color->inventory_id = $inventory_id;
                 $this->_unitOfWork->product_color()->add($product_color);
+
             }
     
             $response["success_messages"] = 'Colors is created successfully';
@@ -373,9 +401,9 @@ class ProductController extends ApiController
         $product_size = $this->_unitOfWork->product_size()->get("id = $id");
         if ($product_size == null) {
             $response["error_messages"] = 'Product size not found';
+           
             return response()->json($response, 404);
         }
-
         try {
             $this->_unitOfWork->product_size()->delete($product_size);
             $response["success_messages"] = 'Product size deleted successfully';
@@ -406,9 +434,9 @@ class ProductController extends ApiController
         $product_color = $this->_unitOfWork->product_color()->get("id = $id");
         if ($product_color == null) {
             $response["error_messages"] = 'Product color not found';
+           
             return response()->json($response, 404);
         }
-        
         try {
             $this->_unitOfWork->product_color()->delete($product_color);
             $response["success_messages"] = 'Product color deleted successfully';
@@ -419,17 +447,33 @@ class ProductController extends ApiController
         }
     }
 
+
     public function getBestSellProducts(){
+         $response = [
+            'data' => [],
+            'error_messages' => '',
+            'success_messages' => '',
+        ];
+      
+        $top_selling_products = $this->_unitOfWork->order_detail()->get_best_seller_products();
+        $response["data"] = $top_selling_products;
+
+        return response()->json($response, 200);
+      }
+  
+    public function getBestRatingProducts(){
+
         $response = [
             'data' => [],
             'error_messages' => '',
             'success_messages' => '',
         ];
 
-        $top_selling_products = $this->_unitOfWork->order_detail()->get_best_seller_products();
-        $response["data"] = $top_selling_products;
-
+        $top_rating_products = $this->_unitOfWork->product()->get_best_rating_products();
+        $response["data"] = $top_rating_products;
+      
         return response()->json($response, 200);
-
     }
+
+
 }
