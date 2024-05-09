@@ -28,5 +28,5 @@ return [
         'cart' => 'SessionShoppingCart',
     ],
     "frontend_domain" => "http://127.0.0.1:5500",
-    "start_date" => '   ',
+    "start_date" => '2023-10-01 00:00:00',
 ];
