@@ -447,15 +447,33 @@ class ProductController extends ApiController
         }
     }
 
+
+    public function getBestSellProducts(){
+         $response = [
+            'data' => [],
+            'error_messages' => '',
+            'success_messages' => '',
+        ];
+      
+        $top_selling_products = $this->_unitOfWork->order_detail()->get_best_seller_products();
+        $response["data"] = $top_selling_products;
+
+        return response()->json($response, 200);
+      }
+  
     public function getBestRatingProducts(){
+
         $response = [
             'data' => [],
             'error_messages' => '',
             'success_messages' => '',
         ];
+
         $top_rating_products = $this->_unitOfWork->product()->get_best_rating_products();
         $response["data"] = $top_rating_products;
+      
         return response()->json($response, 200);
     }
+
 
 }
