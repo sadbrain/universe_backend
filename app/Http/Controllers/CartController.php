@@ -227,4 +227,11 @@ class CartController extends ApiController
 
     }
 
+    public function showCartForSumary(Request $request){
+        $user = $this->getUser($request);
+        $carts = $this->_unitOfWork->cart()->get_all("user_id = $user->id");
+        $carts = $carts->whereIn("id", $request->cart_id)->get()->all(); 
+        return response()->json(["data" => $carts]);
+    }
+
 }
