@@ -10,6 +10,7 @@ use Exception;
 
 class UserController extends ApiController
 {
+
     public function register(Request $request)
     {
         $user = $this->getUser($request);
@@ -186,4 +187,5 @@ class UserController extends ApiController
         $response["success_messages"] = "Operation Successful";
         return response()->json($response, 200);
     }
+
 }
