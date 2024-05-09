@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Validator;
 
 class CompanyController extends Controller
 {
+
     public function getAll(Request $request)
     {
         $response = [
@@ -164,4 +165,5 @@ class CompanyController extends Controller
             return response()->json($response, 500);
         }
     }
+
 }
