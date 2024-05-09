@@ -15,6 +15,30 @@ use Exception;
 class ProductController extends ApiController
 {
 
+    public function getProductsByCategory(?int $id = null, int $page = 1){
+        $response = [
+            'data' => [],
+            'error_messages' => '',
+            'success_messages' => '',
+        ];
+        
+        if ($id == null || !is_numeric($id)) {
+            $firstCategory = $this->_unitOfWork->category()->get_all()->first();
+            $id = $firstCategory->id;   
+        }   
+        $perPage = 10;
+        $products = $this->_unitOfWork->product()->get_all("category_id = $id")
+            ->paginate($perPage, ["*"], "page", $page)->items();
+        foreach ($products as $product){
+            $product->inventory;
+            $product->discount;
+            $product->category;     
+            $response["data"][] = $product;
+        }
+
+        return response()->json($response, 200);
+    }
+   
     public function getAll(Request $request){
         $response = [
             'data' => [],
@@ -422,5 +446,34 @@ class ProductController extends ApiController
             return response()->json($response, 500);
         }
     }
+
+
+    public function getBestSellProducts(){
+         $response = [
+            'data' => [],
+            'error_messages' => '',
+            'success_messages' => '',
+        ];
+      
+        $top_selling_products = $this->_unitOfWork->order_detail()->get_best_seller_products();
+        $response["data"] = $top_selling_products;
+
+        return response()->json($response, 200);
+      }
+  
+    public function getBestRatingProducts(){
+
+        $response = [
+            'data' => [],
+            'error_messages' => '',
+            'success_messages' => '',
+        ];
+
+        $top_rating_products = $this->_unitOfWork->product()->get_best_rating_products();
+        $response["data"] = $top_rating_products;
+      
+        return response()->json($response, 200);
+    }
+
 
 }
