@@ -9,6 +9,7 @@ use Stripe\Refund;
 use Stripe\RefundCreateOptions;
 use Stripe\Stripe;
 use Validator;
+use App\Models\Product;
 use Illuminate\Support\Facades\File;
 use Exception;
 class ProductController extends ApiController
@@ -494,5 +495,30 @@ class ProductController extends ApiController
 
         return response()->json($response, 200);
     }
+    public function getProduct($id){
+        $response = [
+            'data' => [],
+            'error_messages' => '',
+            'success_messages' => '',
+        ];
+ 
+        if ($id == null || $id <= 0) {
+            $response["error_messages"] = 'Invalid id';
+            return response()->json($response, 400);
+        }
+        $query = Product::query();
+        $product = $query->whereRaw("id = $id")->first();
 
+        if ($product == null) {
+            $response["error_messages"] = 'product not found';
+            return response()->json($response, 404);
+        }
+        $product->category;
+        $product->discount;
+        $product->inventory->sizes;
+        $product->inventory->colors;
+        $response["data"] = $product;
+
+        return response()->json($response, 200);
+    }
 }
