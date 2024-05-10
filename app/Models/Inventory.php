@@ -12,8 +12,15 @@ class Inventory extends Model
     use SoftDeletes;
     protected $fillable = [
         'quantity',
-        'color',
-        'size'
+        'quantity_sold',
     ];
+    public function sizes()
+    {
+        return $this->hasMany(ProductSize::class, "inventory_id");
+    }
+
+    public function colors(){
+        return $this->hasMany(ProductColor::class, "inventory_id");
+    }
     protected $date = ["deleted_at"];
 }

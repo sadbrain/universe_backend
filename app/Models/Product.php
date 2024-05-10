@@ -25,12 +25,17 @@ class Product extends Model
     ];
     public function category()
     {
-        return $this->belongsTo(Category::class, "category_id");
+        return $this->belongsTo(Category::class);
     }
 
     public function inventory()
     {
         return $this->belongsTo(Inventory::class, "inventory_id");
+    }
+
+    public function discount()
+    {
+        return $this->belongsTo(Discount::class, "discount_id");
     }
 
     public function product_images(){
@@ -41,6 +46,10 @@ class Product extends Model
         parent::boot();
 
         static::creating(function ($product){
+            $product->slug = Str::slug($product->name);
+        });
+
+        static::updating(function ($product) {
             $product->slug = Str::slug($product->name);
         });
     }
