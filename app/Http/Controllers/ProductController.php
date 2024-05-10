@@ -521,4 +521,22 @@ class ProductController extends ApiController
 
         return response()->json($response, 200);
     }
+    public function getRelatedProducts($id){
+        $response = [
+            'data' => [],
+            'error_messages' => '',
+            'success_messages' => '',
+        ];
+        
+        $products = $this->_unitOfWork->product()->get_all("category_id = $id")->get()->all();
+        
+        foreach ($products as $product){
+            $product->inventory;
+            $product->discount;
+            $product->category;     
+            $response["data"][] = $product;
+        }
+
+        return response()->json($response, 200);   
+    }
 }
