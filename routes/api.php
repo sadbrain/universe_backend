@@ -114,6 +114,7 @@ Route::middleware("api")->prefix("v1")->group(function(){
         });
         Route::get('/{id?}', [ProductController::class, 'getProduct'])->whereNumber(['id']);
         Route::get('/get-products-by-category/{id?}/{page?}', [ProductController::class, 'getProductsByCategory'])->whereNumber(['id','page']);
+        Route::get('/get-products-by-price/{price?}/{page?}', [ProductController::class, 'getProductsByPrice'])->whereNumber(['price','page']);
         Route::get('/get-related-products/{cate_id}', [ProductController::class, 'getRelatedProducts'])->whereNumber(['id']);
         Route::get('/get-best-seller-products', [ProductController::class, 'getBestSellProducts']);
         Route::get('/get-best-rating-products', [ProductController::class, 'getBestRatingProducts']);

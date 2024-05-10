@@ -1,5 +1,4 @@
-        <?php
-
+<?php
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\ApiController;
@@ -474,6 +473,26 @@ class ProductController extends ApiController
       
         return response()->json($response, 200);
     }
+    public function getProductsByPrice(Request $request,$price = null,  int $page = 1){
+        $response = [
+            'data' => [],
+            'error_messages' => '',
+            'success_messages' => '',
+        ];
+        if ($price == null){
+            $price = 100;
+        }
+        $perPage = 10;
+        $products = $this->_unitOfWork->product()->get_all("price <= $price")
+            ->paginate($perPage, ["*"], "page", $page)->items();
+        foreach ($products as $product){
+            $product->inventory;
+            $product->discount;
+            $product->category;     
+            $response["data"][] = $product;
+        }
 
+        return response()->json($response, 200);
+    }
 
 }
