@@ -44,7 +44,7 @@ class OrderController extends ApiController
                 $orders = $orders->whereRaw("order_status = '{$order_status['approved']}'");
                 break;
         }
-        $response["data"] = $orders->get()->all();
+        $response["data"] = $orders->with('user')->get()->all();
         return response()->json($response, 200);
     }
 
@@ -59,18 +59,20 @@ class OrderController extends ApiController
         $order = $this->_unitOfWork->order()->get("id = $id");
         $order_details = $this->_unitOfWork->order_detail()->get_all("order_id = $id")->get()->all();
         $payment = $this->_unitOfWork->payment()->get("order_id = $id");
-
+        $order -> user;
         $obj = [
             "order" => $order,
             "order_details" => $order_details,
             "payment" => $payment,
         ];
-        
+        foreach($order_details as $o){
+            $o->product;
+        }
         array_push($response["data"], $obj);
         return response()->json($response, 200);
     }
 
-    public function detailPost(Request $request)
+    public function detailPost(Request $request, int $id)
     {
 
         $response = [
@@ -161,9 +163,9 @@ class OrderController extends ApiController
         if($validator->fails()){
             return response()->json($validator->errors(), 400);
         }
-        $order->carrier = $request->input("order.carrier");
+        $order->carrier = $request->input("carrier");
         $order->order_status = config("constants.order_status.shipped");
-        $order->tracking_number = $request->input("order.tracking_number");
+        $order->tracking_number = $request->input("tracking_number");
         $order->shipping_date = now();
         $payment = $this->_unitOfWork->payment()->get("order_id = $orderId");
         if ($payment->payment_status == config("constants.payment_status.delayed_payment")) {
@@ -213,7 +215,7 @@ class OrderController extends ApiController
             ];
         }
         $session = Session::create([
-            'success_url' => $frontend_domain . "/orderConfirmation.html?order_id=$order->id",
+            'success_url' => $frontend_domain . "/orderConfirmation?order_id=$order->id",
             // 'cancel_url' => $domain . "/admin//order/detail/$order->id",
             'payment_method_types' => ['card'],
             'line_items' => $lineItems,
@@ -222,7 +224,7 @@ class OrderController extends ApiController
 
         $this->_unitOfWork->order()->update_stripe_payment_id($order->id, $session->id, $session->payment_intent);
         $response['success_url'] = $session->url;
-        return response()->json($response);
+        return response()->json($response, 200);
     }
     public function cancelOrder(Request $request)
     {

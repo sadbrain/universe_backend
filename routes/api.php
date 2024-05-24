@@ -92,11 +92,11 @@ Route::middleware("api")->prefix("v1")->group(function(){
             Route::get('/customer/{status}', [OrderController::class, 'getAllOfCustomers'])->whereAlpha("status");
             Route::get('/admin/{status}', [OrderController::class, 'getAllOfAdmin'])->whereAlpha("status");
             Route::get('/detail/{id}', [OrderController::class, 'detail'])->whereNumber("id");
-            Route::post('/detail/', [OrderController::class, 'detailPost']);
-            Route::post('/paynow', [OrderController::class, 'paynow']);
-            Route::post('/start-processing', [OrderController::class, 'startProcessing']);
-            Route::post('/ship-order', [OrderController::class, 'shipOrder']);
-            Route::post('/cancel-order', [OrderController::class, 'cancelOrder']);
+            Route::put('/detail/{id}', [OrderController::class, 'detailPost'])->whereNumber("id");
+            Route::put('/paynow', [OrderController::class, 'paynow']);
+            Route::put('/start-processing', [OrderController::class, 'startProcessing']);
+            Route::put('/ship-order', [OrderController::class, 'shipOrder']);
+            Route::put('/cancel-order', [OrderController::class, 'cancelOrder']);
         });
         
     });

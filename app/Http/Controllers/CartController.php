@@ -173,7 +173,7 @@ class CartController extends ApiController
                 ];
             }
             $session = Session::create([
-                'success_url' => $frontend_domain . "/orderConfirmation.html?order_id=$order->id",
+                'success_url' => $frontend_domain . "/orderConfirmation?order_id=$order->id",
                 // 'cancel_url' => $domain . "/v1/cart/index",
                 'payment_method_types' => ['card'],
                 'line_items' => $lineItems,
@@ -185,7 +185,7 @@ class CartController extends ApiController
         }
 
         //return view xác nhận thành công của frontend
-        return response()->json(['success_url' => $frontend_domain . "/orderConfirmation.html?order_id=$order->id"]);
+        return response()->json(['success_url' => "/orderConfirmation?order_id=$order->id"]);
 
     }
 
@@ -231,6 +231,9 @@ class CartController extends ApiController
         $user = $this->getUser($request);
         $carts = $this->_unitOfWork->cart()->get_all("user_id = $user->id");
         $carts = $carts->whereIn("id", $request->cart_id)->get()->all(); 
+        foreach($carts as $c){
+            $c -> product -> discount;
+        }
         return response()->json(["data" => $carts]);
     }
 

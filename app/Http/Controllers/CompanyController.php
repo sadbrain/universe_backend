@@ -175,9 +175,8 @@ class CompanyController extends ApiController
         }
 
         try {
-            $company->users()->update(['company_id' => null]);
-
-            $company->delete();
+            // $company->users()->update(['company_id' => null]);
+            // $company->delete();
             $response["success_messages"] = 'Company deleted';
             return response()->json($response, 204);
         } catch (Exception $e) {
