@@ -456,6 +456,11 @@ class ProductController extends ApiController
         ];
       
         $top_selling_products = $this->_unitOfWork->order_detail()->get_best_seller_products();
+        foreach ($top_selling_products as $product){
+            $product->inventory;
+            $product->discount;
+            $product->category;     
+        }
         $response["data"] = $top_selling_products;
 
         return response()->json($response, 200);
@@ -470,6 +475,11 @@ class ProductController extends ApiController
         ];
 
         $top_rating_products = $this->_unitOfWork->product()->get_best_rating_products();
+        foreach ($top_rating_products as $product){
+            $product->inventory;
+            $product->discount;
+            $product->category;     
+        }
         $response["data"] = $top_rating_products;
       
         return response()->json($response, 200);
