@@ -80,6 +80,9 @@ class CartController extends ApiController
     public function showCart(Request $request){
         $user = $this->getUser($request);
         $carts = $this->_unitOfWork->cart()->get_all("user_id = $user->id")->get()->all(); 
+        foreach($carts as $c){
+            $c -> product;
+        }
         return response()->json(["data" => $carts]);
     }
     

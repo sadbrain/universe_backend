@@ -74,9 +74,9 @@ Route::middleware("api")->prefix("v1")->group(function(){
             Route::post('/summary', [CartController::class, 'summary']);
             Route::get('/order-confirmation/{id}', [CartController::class, 'orderConfirmation'])->whereNumber("id");
             Route::post('/add-to-cart', [CartController::class, 'addToCart']);
-            Route::get('/plus/{id}', [CartController::class, 'plus']);
-            Route::get('/minus/{id}', [CartController::class, 'minus']);
-            Route::get('/delete/{id}', [CartController::class, 'delete']);
+            Route::put('/plus/{id}', [CartController::class, 'plus']);
+            Route::put('/minus/{id}', [CartController::class, 'minus']);
+            Route::delete('/delete/{id}', [CartController::class, 'delete']);
             Route::get('/show-cart', [CartController::class, 'showCart']);
             Route::post('/show-cart-for-sumary', [CartController::class, 'showCartForSumary']);
         });
