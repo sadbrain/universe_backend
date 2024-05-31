@@ -16,7 +16,7 @@ class OrderController extends ApiController
 
     public function getAllOfAdmin(Request $request, string $status)
     {
-          $response = [
+        $response = [
             'data' => [],
             'error_messages' => '',
             'success_messages' => '',
@@ -47,9 +47,40 @@ class OrderController extends ApiController
         $response["data"] = $orders->with('user')->get()->all();
         return response()->json($response, 200);
     }
+    public function getAllOfCustomers(Request $request, string $status)
+    {
+        $response = [
+            'data' => [],
+            'error_messages' => '',
+            'success_messages' => '',
+        ];
+        $user = $this->getUser($request);
+        $order_status = config("constants.order_status");
+        $orders = $this->_unitOfWork->order()->get_all("user_id = $user->id");
+        switch ($status) {
+            case "ordering":
+                $orders = $orders->whereRaw("order_status IN ('{$order_status['pending']}', '{$order_status['approved']}', '{$order_status['in_process']}')");
+                break;
+            case "ordered":
+                $orders = $orders->whereRaw("order_status = '{$order_status['shipped']}'");
+                break;
+            case "cancelled":
+                $orders = $orders->whereRaw("order_status = '{$order_status['cancelled']}'");
+                break;
+        }
+        $orders = $orders->get()->all();
+        foreach ($orders as $o) {
+            $order_details = $this->_unitOfWork->order_detail()->get_all("order_id = $o->id")->get()->all();
+            $payment = $this->_unitOfWork->payment()->get("order_id =" . $o->id);
+            $o["payment"] = $payment;
+            $o["order_details"] = $order_details;
+        }
+        $response["data"] = $orders;
+        return response()->json($response, 200);
+    }
 
     public function detail(Request $request, int $id)
-    {  
+    {
 
         $response = [
             'data' => [],
@@ -59,13 +90,13 @@ class OrderController extends ApiController
         $order = $this->_unitOfWork->order()->get("id = $id");
         $order_details = $this->_unitOfWork->order_detail()->get_all("order_id = $id")->get()->all();
         $payment = $this->_unitOfWork->payment()->get("order_id = $id");
-        $order -> user;
+        $order->user;
         $obj = [
             "order" => $order,
             "order_details" => $order_details,
             "payment" => $payment,
         ];
-        foreach($order_details as $o){
+        foreach ($order_details as $o) {
             $o->product;
         }
         array_push($response["data"], $obj);
@@ -81,11 +112,11 @@ class OrderController extends ApiController
             'success_messages' => '',
         ];
         $user = $this->getUser($request);
-        if(!$this->isAdmin($user)){
+        if (!$this->isAdmin($user)) {
             $response["error_messages"] = "You do not have permission to access this page.";
             return response()->json($response, 403);
         }
-        
+
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|min:2|max:255',
             'phone' => 'required|string|min:10|max:20',
@@ -93,7 +124,7 @@ class OrderController extends ApiController
             'district_address' => 'required|string|min:6|max:255',
             'city' => 'required|string|min:6|max:255',
         ]);
-        if($validator->fails()){
+        if ($validator->fails()) {
             return response()->json($validator->errors(), 400);
         }
 
@@ -105,8 +136,8 @@ class OrderController extends ApiController
             return response()->json($response, 404);
         }
         $order->fill($validator->validated());
-        if(filled($request->input("carrier")))  $order->carrier=$request->input("carrier");
-        if(filled($request->input("tracking_number")))  $order->tracking_number=$request->input("tracking_number");
+        if (filled($request->input("carrier")))  $order->carrier = $request->input("carrier");
+        if (filled($request->input("tracking_number")))  $order->tracking_number = $request->input("tracking_number");
         $this->_unitOfWork->order()->update($order);
 
         $response["success_messages"] = "Order Details Updated Successfully";
@@ -121,7 +152,7 @@ class OrderController extends ApiController
             'success_messages' => '',
         ];
         $user = $this->getUser($request);
-        if(!$this->isAdmin($user)){
+        if (!$this->isAdmin($user)) {
             $response["error_messages"] = "You do not have permission to access this page.";
             return response()->json($response, 403);
         }
@@ -145,7 +176,7 @@ class OrderController extends ApiController
             'success_messages' => '',
         ];
         $user = $this->getUser($request);
-        if(!$this->isAdmin($user)){
+        if (!$this->isAdmin($user)) {
             $response["error_messages"] = "You do not have permission to access this page.";
             return response()->json($response, 403);
         }
@@ -160,7 +191,7 @@ class OrderController extends ApiController
             'carrier' => 'required|string|min:6|max:255',
             'tracking_number' => 'required|string|min:6|max:255',
         ]);
-        if($validator->fails()){
+        if ($validator->fails()) {
             return response()->json($validator->errors(), 400);
         }
         $order->carrier = $request->input("carrier");
@@ -184,9 +215,9 @@ class OrderController extends ApiController
             'data' => [],
             'error_messages' => '',
             'success_messages' => '',
-        ];  
+        ];
         $user = $this->getUser($request);
-        if(!$this->isCompany($user)){
+        if (!$this->isCompany($user)) {
             $response["error_messages"] = "You do not have permission to access this page.";
             return response()->json($response, 403);
         }
@@ -258,7 +289,8 @@ class OrderController extends ApiController
         return response()->json($response, 200);
     }
 
-    public function getDailyOrders(Request $request){
+    public function getDailyOrders(Request $request)
+    {
         $response = [
             'data' => [],
             'error_messages' => '',
@@ -266,12 +298,12 @@ class OrderController extends ApiController
         ];
 
         $user = $this->getUser($request);
-        if(!$this->isAdmin($user)){
+        if (!$this->isAdmin($user)) {
             $response["error_messages"] = "You do not have permission to access this page.";
             return response()->json($response, 403);
         }
 
-        $order_chart = "Daily order quantity statistics"; 
+        $order_chart = "Daily order quantity statistics";
         $count_orders = [];
         $label = [];
 
@@ -285,13 +317,16 @@ class OrderController extends ApiController
             $count_orders[] = $num;
             $label[] = $day->day;
         }
-        $response["data"][] = ["order_total" => $count_orders,
-                                "order_chart" => $order_chart,
-                                "label" => $label,] ;
+        $response["data"][] = [
+            "order_total" => $count_orders,
+            "order_chart" => $order_chart,
+            "label" => $label,
+        ];
         return response()->json($response, 200);
     }
 
-    public function getMonthlyOrders(Request $request){
+    public function getMonthlyOrders(Request $request)
+    {
         $response = [
             'data' => [],
             'error_messages' => '',
@@ -299,12 +334,12 @@ class OrderController extends ApiController
         ];
 
         $user = $this->getUser($request);
-        if(!$this->isAdmin($user)){
+        if (!$this->isAdmin($user)) {
             $response["error_messages"] = "You do not have permission to access this page.";
-            return response()->json($response, 403);    
+            return response()->json($response, 403);
         }
 
-        $order_chart = "Monthly order quantity statistics"; 
+        $order_chart = "Monthly order quantity statistics";
         $count_orders = [];
         $label = [];
         $current_date = Carbon::now();
@@ -318,13 +353,16 @@ class OrderController extends ApiController
             $count_orders[] = $num;
             $label[] = $year;
         }
-        $response["data"][] = ["order_count" => $count_orders,
-                                "order_chart" => $order_chart,
-                                "label" => $label,] ;
+        $response["data"][] = [
+            "order_count" => $count_orders,
+            "order_chart" => $order_chart,
+            "label" => $label,
+        ];
         return response()->json($response, 200);
     }
 
-    public function getYearlyOrders(Request $request){
+    public function getYearlyOrders(Request $request)
+    {
         $response = [
             'data' => [],
             'error_messages' => '',
@@ -332,12 +370,12 @@ class OrderController extends ApiController
         ];
 
         $user = $this->getUser($request);
-        if(!$this->isAdmin($user)){
+        if (!$this->isAdmin($user)) {
             $response["error_messages"] = "You do not have permission to access this page.";
-            return response()->json($response, 403);    
+            return response()->json($response, 403);
         }
 
-        $order_chart = "Yearly order quantity statistics"; 
+        $order_chart = "Yearly order quantity statistics";
         $count_orders = [];
         $label = [];
         $start_date = Carbon::createFromFormat('Y-m-d H:i:s', config("constants.start_date"));
@@ -351,13 +389,16 @@ class OrderController extends ApiController
             $count_orders[] = $num;
             $label[] = $year;
         }
-        $response["data"][] = ["order_count" => $count_orders,
-                                "order_chart" => $order_chart,
-                                "label" => $label,] ;
+        $response["data"][] = [
+            "order_count" => $count_orders,
+            "order_chart" => $order_chart,
+            "label" => $label,
+        ];
         return response()->json($response, 200);
     }
 
-    public function getTotalRevenueOrder(Request $request){
+    public function getTotalRevenueOrder(Request $request)
+    {
         $response = [
             'data' => [],
             'error_messages' => '',
@@ -365,9 +406,9 @@ class OrderController extends ApiController
         ];
 
         $user = $this->getUser($request);
-        if(!$this->isAdmin($user)){
+        if (!$this->isAdmin($user)) {
             $response["error_messages"] = "You do not have permission to access this page.";
-            return response()->json($response, 403);    
+            return response()->json($response, 403);
         }
 
 
@@ -376,13 +417,15 @@ class OrderController extends ApiController
         $order_total = $this->_unitOfWork->order()->get_num_order($start_of_day, $end_of_day);
         $revenue_total = $this->_unitOfWork->order()->get_total_revenue_order($start_of_day, $end_of_day);
 
-        $response["data"][] = ["order_total" => $order_total,
-                                "revenue_total" => $revenue_total,
-                               ] ;
+        $response["data"][] = [
+            "order_total" => $order_total,
+            "revenue_total" => $revenue_total,
+        ];
         return response()->json($response, 200);
     }
-    
-    public function getCurrentYearTotalRevenueOrder(Request $request){
+
+    public function getCurrentYearTotalRevenueOrder(Request $request)
+    {
         $response = [
             'data' => [],
             'error_messages' => '',
@@ -390,9 +433,9 @@ class OrderController extends ApiController
         ];
 
         $user = $this->getUser($request);
-        if(!$this->isAdmin($user)){
+        if (!$this->isAdmin($user)) {
             $response["error_messages"] = "You do not have permission to access this page.";
-            return response()->json($response, 403);    
+            return response()->json($response, 403);
         }
 
 
@@ -401,11 +444,10 @@ class OrderController extends ApiController
         $order_total = $this->_unitOfWork->order()->get_num_order($start_of_day, $end_of_day);
         $revenue_total = $this->_unitOfWork->order()->get_total_revenue_order($start_of_day, $end_of_day);
 
-        $response["data"][] = ["order_total" => $order_total,
-                                "revenue_total" => $revenue_total,
-                               ] ;
+        $response["data"][] = [
+            "order_total" => $order_total,
+            "revenue_total" => $revenue_total,
+        ];
         return response()->json($response, 200);
     }
-    
-
 }
