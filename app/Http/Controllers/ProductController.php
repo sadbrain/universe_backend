@@ -123,8 +123,8 @@ class ProductController extends ApiController
 
             }
         
-            if($request->has("image")){
-                $file = $request->get("image");
+            if($request->hasFile("image")){
+                $file = $request->file("image");
                 $originalFilename = $file->getClientOriginalName();
                 $extension = $file->getClientOriginalExtension();  
                 $filename = time() . '_' . pathinfo($originalFilename, PATHINFO_FILENAME) . '.' . $extension;
@@ -154,6 +154,7 @@ class ProductController extends ApiController
             'error_messages' => '',
             'success_messages' => '',
         ];
+
         $user = $this->getUser($request);
         if(!$this->isAdmin($user)){
             $response["error_messages"] = "You do not have permission to access this page.";
@@ -164,8 +165,8 @@ class ProductController extends ApiController
             'product.name' => 'required|string|min:2|max:255',
             'product.description' => 'nullable|string',
             'product.price' => 'required|numeric|min:1',
-            'inventory.quantity' => 'required|integer|min:1',
-            'inventory.quantity_sold' => 'nullable|integer|min:1',
+            'inventory.quantity' => 'required|numeric|min:1',
+            'inventory.quantity_sold' => 'nullable|numeric|min:1',
             'sizes' => 'nullable|array',
             'sizes.*.name' => 'nullable|string|max:255|required_with:sizes.*', 
             'sizes.*.quantity' => 'nullable|integer|min:1|required_with:sizes.*',
@@ -222,8 +223,8 @@ class ProductController extends ApiController
 
             }
 
-            if($request->has("image")){
-                $file = $request->get("image");
+            if($request->hasFile("image")){
+                $file = $request->file("image");
                 $originalFilename = $file->getClientOriginalName();
                 $extension = $file->getClientOriginalExtension();  
                 $filename = time() . '_' . pathinfo($originalFilename, PATHINFO_FILENAME) . '.' . $extension;

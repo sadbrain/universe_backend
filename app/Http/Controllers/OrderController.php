@@ -318,7 +318,7 @@ class OrderController extends ApiController
             $label[] = $day->day;
         }
         $response["data"][] = [
-            "order_total" => $count_orders,
+            "order_count" => $count_orders,
             "order_chart" => $order_chart,
             "label" => $label,
         ];
