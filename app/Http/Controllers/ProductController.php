@@ -223,28 +223,32 @@ class ProductController extends ApiController
 
             }
 
-            if($request->hasFile("image")){
-                $file = $request->file("image");
-                $originalFilename = $file->getClientOriginalName();
-                $extension = $file->getClientOriginalExtension();  
-                $filename = time() . '_' . pathinfo($originalFilename, PATHINFO_FILENAME) . '.' . $extension;
-                $foldername = "/images/product/product-".$product->id;
-                $folderpath  = public_path($foldername);
-
-                if(!file_exists($folderpath)){
-                    mkdir($folderpath, 0777, true);
-                }else{
-                    $existingFiles = File::files($folderpath);
-                    foreach ($existingFiles as $existingFile) {
-                        File::delete($existingFile);
+            if ($request->filled("image") && !empty($request->input("image"))) {
+                $image = $request->input("image");
+                $imageParts = explode(';base64,', $image);
+                if (count($imageParts) === 2) {
+                    $imageType = explode('image/', $imageParts[0])[1];
+                    $imageBase64 = base64_decode($imageParts[1]);
+                    $filename = 'product_' . $product->id . '.' . $imageType;
+                    $foldername = "/images/product/product-" . $product->id;
+                    $folderpath  = public_path($foldername);
+    
+                    if (!file_exists($folderpath)) {
+                        mkdir($folderpath, 0777, true);
+                    } else {
+                        $existingFiles = File::files($folderpath);
+                        foreach ($existingFiles as $existingFile) {
+                            File::delete($existingFile);
+                        }
                     }
+    
+                    $filePath = $folderpath . '/' . $filename;
+                    File::put($filePath, $imageBase64);
+                    $product->thumbnail = $foldername . "/" . $filename;
+                    $this->_unitOfWork->product()->update($product);
                 }
-
-                $file->move($folderpath, $filename);
-                $product -> thumbnail = $foldername ."/". $filename;
-                $this->_unitOfWork->product()->update($product);
-
             }
+    
 
             $response["success_messages"] = 'Product updated successfully';
             return response()->json($response, 200);
