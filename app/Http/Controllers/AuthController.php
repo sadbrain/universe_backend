@@ -71,6 +71,12 @@ class AuthController extends ApiController
         return $this->createNewToken(auth("api")->refresh());
     }
 
+    public function userProfile() {
+        auth()->user()->company;
+        auth()->user()->role;
+        return response()->json(auth()->user(), 200);
+    }
+
     protected function createNewToken($token){
         auth()->user()->company;
         auth()->user()->role;

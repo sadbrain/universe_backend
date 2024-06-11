@@ -20,19 +20,6 @@ class Company extends Model
         'city',
     ];
 
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($company) {
-            $company->slug = Str::slug($company->name);
-        });
-
-        static::updating(function ($company) {
-            $company->slug = Str::slug($company->name);
-        });
-    }
-
     protected $dates = ["deleted_at"];
 
     public function users()

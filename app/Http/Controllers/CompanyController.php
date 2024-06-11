@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\ApiController;
 use App\Models\Company;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use Exception;
+use Validator;
 
-class CompanyController extends Controller
+class CompanyController extends ApiController
 {
 
     public function getAll(Request $request)
@@ -17,19 +19,14 @@ class CompanyController extends Controller
             'success_messages' => '',
         ];
 
-        $user = $this->getUser($request);
-        if (!$this->isAdmin($user)) {
-            $response["error_messages"] = "You do not have permission to access this page.";
-            return response()->json($response, 403);
-        }
-
-        $companies = Company::all();
-
+        $query = Company::query();
+        $companies = $query->get()->all();
         $response["data"] = $companies;
         return response()->json($response, 200);
-    }
 
-    public function get(Request $request, $id)
+        }
+
+    public function get(Request $request, int $id)
     {
         $response = [
             'data' => [],
@@ -38,14 +35,20 @@ class CompanyController extends Controller
         ];
 
         $user = $this->getUser($request);
+
         if (!$this->isAdmin($user)) {
             $response["error_messages"] = "You do not have permission to access this page.";
             return response()->json($response, 403);
         }
 
-        $company = Company::find($id);
+        if ($id == null || $id <= 0) {
+            $response["error_messages"] = 'Invalid id';
+            return response()->json($response, 400);
+        }
+        $query = Company::query();
+        $company = $query->whereRaw("id = $id")->first();
 
-        if (!$company) {
+        if ($company == null) {
             $response["error_messages"] = 'Company not found';
             return response()->json($response, 404);
         }
@@ -81,10 +84,10 @@ class CompanyController extends Controller
         }
 
         try {
-            $company = Company::create($validator->validated());
+            Company::create($validator->validated());
             $response["success_messages"] = 'Company is created successfully';
             return response()->json($response, 201);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $response["error_messages"] = 'Exception: ' . $e->getMessage();
             return response()->json($response, 500);
         }
@@ -116,9 +119,20 @@ class CompanyController extends Controller
             return response()->json($validator->errors(), 400);
         }
 
-        $company = Company::find($id);
+        if ($id != $request->input("id")) {
+            $response["error_messages"] = 'Bad request id';
+            return response()->json($response, 400);
+        }
 
-        if (!$company) {
+        if ($id == null || $id == 0) {
+            $response["error_messages"] = 'Bad request id';
+            return response()->json($response, 400);
+        }
+
+        $query = Company::query();
+        $company = $query->whereRaw("id = $id")->first();
+        
+        if ($company == null) {
             $response["error_messages"] = 'Company not found';
             return response()->json($response, 404);
         }
@@ -127,7 +141,7 @@ class CompanyController extends Controller
             $company->update($validator->validated());
             $response["success_messages"] = 'Company is updated successfully';
             return response()->json($response, 200);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $response["error_messages"] = 'Exception: ' . $e->getMessage();
             return response()->json($response, 500);
         }
@@ -147,20 +161,25 @@ class CompanyController extends Controller
             return response()->json($response, 403);
         }
 
-        $company = Company::find($id);
+        if ($id == null || $id == 0) {
+            $response["error_messages"] = 'Bad request id';
+            return response()->json($response, 400);
+        }
 
-        if (!$company) {
+        $query = Company::query();
+        $company = $query->whereRaw("id = $id")->first();
+
+        if ($company == null) {
             $response["error_messages"] = 'Company not found';
             return response()->json($response, 404);
         }
 
         try {
-            $company->users()->update(['company_id' => null]);
-
-            $company->delete();
+            // $company->users()->update(['company_id' => null]);
+            // $company->delete();
             $response["success_messages"] = 'Company deleted';
             return response()->json($response, 204);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $response["error_messages"] = 'Exception: ' . $e->getMessage();
             return response()->json($response, 500);
         }
