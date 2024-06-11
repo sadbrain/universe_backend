@@ -71,6 +71,10 @@ class OrderController extends ApiController
         $orders = $orders->get()->all();
         foreach ($orders as $o) {
             $order_details = $this->_unitOfWork->order_detail()->get_all("order_id = $o->id")->get()->all();
+            foreach ($order_details as $od) {
+                $product = $this->_unitOfWork->product()->get("id =" . $od->product_id);
+                $od["product"] = $product;
+            }
             $payment = $this->_unitOfWork->payment()->get("order_id =" . $o->id);
             $o["payment"] = $payment;
             $o["order_details"] = $order_details;
