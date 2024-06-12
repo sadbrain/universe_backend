@@ -223,7 +223,7 @@ class ProductController extends ApiController
                 $this->_unitOfWork->product_color()->update($product_color);
             }
 
-  if ($request->filled("image") && !empty($request->input("image"))) {
+         if ($request->filled("image") && !empty($request->input("image"))) {
                 $image = $request->input("image");
                 $imageParts = explode(';base64,', $image);
                 if (count($imageParts) === 2) {
@@ -247,10 +247,6 @@ class ProductController extends ApiController
                     $product->thumbnail = $foldername . "/" . $filename;
                     $this->_unitOfWork->product()->update($product);
                 }
-
-                $file->move($folderpath, $filename);
-                $product->thumbnail = $foldername . "/" . $filename;
-                $this->_unitOfWork->product()->update($product);
 
             }
     
